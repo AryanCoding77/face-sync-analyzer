@@ -6,26 +6,8 @@ import { Link } from 'react-router-dom';
 import { ArrowRight, Heart, Shield, BarChart, Droplets, Fingerprint } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FaceAnalysisResult } from '../../lib/faceAnalysisTypes';
-
-// Placeholder data for demo
-const placeholderResults: FaceAnalysisResult = {
-  facialResemblance: { 
-    celebrity: 'Ryan Gosling',
-    similarityScore: 78 
-  },
-  skinType: 'Combination',
-  faceShape: 'Oval',
-  skinTone: 'Medium',
-  facialSymmetry: 82,
-  dominantEmotion: 'Neutral',
-  facialAttributes: {
-    eyeSize: 'Medium',
-    noseShape: 'Straight',
-    lipFullness: 'Medium',
-    eyebrowThickness: 'Medium',
-    foreheadHeight: 'Average'
-  }
-};
+import { ChartContainer, ChartLegend, ChartLegendContent } from '../ui/chart';
+import { Bar, BarChart as RechartsBarChart, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
 
 interface ResultsDisplayProps {
   imageData?: string;
@@ -34,16 +16,16 @@ interface ResultsDisplayProps {
 
 const ResultsDisplay: React.FC<ResultsDisplayProps> = ({ 
   imageData, 
-  results = placeholderResults 
+  results 
 }) => {
   const [isLoading, setIsLoading] = useState(true);
   const [animatedSymmetry, setAnimatedSymmetry] = useState(0);
   
   useEffect(() => {
-    // Simulate loading delay
+    // Show loading state briefly
     const timer = setTimeout(() => {
       setIsLoading(false);
-    }, 2000);
+    }, 1000);
     
     return () => clearTimeout(timer);
   }, []);
@@ -71,7 +53,7 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     }
   }, [isLoading, results]);
 
-  if (isLoading) {
+  if (isLoading || !results) {
     return (
       <div className="w-full max-w-4xl mx-auto">
         <div className="flex flex-col items-center justify-center p-12">
@@ -80,12 +62,21 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
               <div className="absolute inset-0 rounded-full border-t-2 border-accent-blue animate-spin"></div>
               <div className="absolute inset-3 rounded-full border-t-2 border-accent-blue animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
             </div>
-            <p className="text-text-secondary">Analyzing facial features...</p>
+            <p className="text-text-secondary">Loading your results...</p>
           </div>
         </div>
       </div>
     );
   }
+
+  // Prepare attribute data for the chart
+  const attributeData = [
+    { name: 'Eye Size', value: attributeToValue(results.facialAttributes.eyeSize) },
+    { name: 'Nose Shape', value: attributeToValue(results.facialAttributes.noseShape) },
+    { name: 'Lip Fullness', value: attributeToValue(results.facialAttributes.lipFullness) },
+    { name: 'Eyebrow Thickness', value: attributeToValue(results.facialAttributes.eyebrowThickness) },
+    { name: 'Forehead Height', value: attributeToValue(results.facialAttributes.foreheadHeight) },
+  ];
 
   return (
     <div className="w-full max-w-4xl mx-auto animate-fade-in">
@@ -178,6 +169,44 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
             </CardContent>
           </Card>
           
+          {/* Attributes Chart */}
+          <Card variant="elevated" className="overflow-hidden">
+            <CardHeader className="bg-accent-blue/5 border-b border-accent-blue/10">
+              <div className="flex items-center">
+                <BarChart className="w-5 h-5 text-accent-blue mr-2" />
+                <CardTitle className="text-lg">Facial Attributes</CardTitle>
+              </div>
+            </CardHeader>
+            <CardContent className="p-6">
+              <div className="h-64 w-full">
+                <ChartContainer
+                  config={{
+                    attributes: {
+                      theme: {
+                        light: "#3b82f6",
+                        dark: "#60a5fa",
+                      },
+                    },
+                  }}
+                >
+                  <ResponsiveContainer width="100%" height="100%">
+                    <RechartsBarChart data={attributeData} layout="vertical">
+                      <XAxis type="number" domain={[0, 100]} />
+                      <YAxis dataKey="name" type="category" width={100} />
+                      <Tooltip />
+                      <Bar 
+                        dataKey="value" 
+                        fill="var(--color-attributes)" 
+                        radius={[0, 4, 4, 0]} 
+                        barSize={20}
+                      />
+                    </RechartsBarChart>
+                  </ResponsiveContainer>
+                </ChartContainer>
+              </div>
+            </CardContent>
+          </Card>
+          
           {/* Key Features */}
           <Card variant="elevated" className="overflow-hidden">
             <CardHeader className="bg-accent-blue/5 border-b border-accent-blue/10">
@@ -223,6 +252,31 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
     </div>
   );
 };
+
+// Helper functions
+function attributeToValue(attribute: string): number {
+  // Convert attribute strings to numeric values for chart visualization
+  switch (attribute) {
+    case 'Small':
+    case 'Thin':
+    case 'Low':
+    case 'Pointed':
+      return 25;
+    case 'Medium':
+    case 'Average':
+    case 'Straight':
+      return 50;
+    case 'Large':
+    case 'Full':
+    case 'Thick':
+    case 'High':
+    case 'Wide':
+    case 'Rounded':
+      return 75;
+    default:
+      return 50;
+  }
+}
 
 interface FeatureItemProps {
   label: string;

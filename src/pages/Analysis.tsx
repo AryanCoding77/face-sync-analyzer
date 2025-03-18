@@ -5,21 +5,36 @@ import Footer from '../components/Layout/Footer';
 import FaceUploader from '../components/Analysis/FaceUploader';
 import { ArrowLeft } from 'lucide-react';
 import { Link, useNavigate } from 'react-router-dom';
+import { analyzeFace } from '../lib/faceApiService';
+import { toast } from 'sonner';
+import type { FaceAnalysisResult } from '../lib/faceAnalysisTypes';
 
 const Analysis = () => {
   const [imageData, setImageData] = useState<string | null>(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
   const navigate = useNavigate();
   
-  const handleImageCaptured = (capturedImage: string) => {
+  const handleImageCaptured = async (capturedImage: string) => {
     setImageData(capturedImage);
+    setIsAnalyzing(true);
     
-    // In a real implementation, we would send the image to the Face++ API here
-    // For demo purposes, we'll automatically navigate to results after a short delay
-    setTimeout(() => {
-      // Store the image data in session storage to access it on the results page
+    try {
+      // Store the image data in session storage 
       sessionStorage.setItem('analysisImage', capturedImage);
+      
+      // Call Face++ API to analyze the face
+      const analysisResult = await analyzeFace(capturedImage);
+      
+      // Store the analysis result
+      sessionStorage.setItem('analysisResult', JSON.stringify(analysisResult));
+      
+      // Navigate to the results page
       navigate('/results');
-    }, 2000);
+    } catch (error) {
+      console.error('Error during face analysis:', error);
+      toast.error('Face analysis failed. Please try again with a clearer photo.');
+      setIsAnalyzing(false);
+    }
   };
   
   return (
@@ -41,7 +56,10 @@ const Analysis = () => {
             </p>
           </div>
           
-          <FaceUploader onImageCaptured={handleImageCaptured} />
+          <FaceUploader 
+            onImageCaptured={handleImageCaptured} 
+            isAnalyzing={isAnalyzing}
+          />
           
           <div className="mt-12 max-w-lg mx-auto">
             <div className="bg-gray-50 rounded-lg p-4 text-sm text-text-secondary">

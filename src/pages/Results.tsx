@@ -5,47 +5,39 @@ import Footer from '../components/Layout/Footer';
 import ResultsDisplay from '../components/Analysis/ResultsDisplay';
 import CompareAILink from '../components/Integration/CompareAILink';
 import { ArrowLeft } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import type { FaceAnalysisResult } from '../lib/faceAnalysisTypes';
-
-// Placeholder data for demo
-const placeholderResults: FaceAnalysisResult = {
-  facialResemblance: { 
-    celebrity: 'Ryan Gosling',
-    similarityScore: 78 
-  },
-  skinType: 'Combination',
-  faceShape: 'Oval',
-  skinTone: 'Medium',
-  facialSymmetry: 82,
-  dominantEmotion: 'Neutral',
-  facialAttributes: {
-    eyeSize: 'Medium',
-    noseShape: 'Straight',
-    lipFullness: 'Medium',
-    eyebrowThickness: 'Medium',
-    foreheadHeight: 'Average'
-  }
-};
+import { toast } from 'sonner';
 
 const Results = () => {
   const [imageData, setImageData] = useState<string | null>(null);
   const [results, setResults] = useState<FaceAnalysisResult | null>(null);
+  const navigate = useNavigate();
   
   useEffect(() => {
-    // Retrieve the image data from session storage
+    // Retrieve the image data and analysis results from session storage
     const storedImage = sessionStorage.getItem('analysisImage');
-    if (storedImage) {
-      setImageData(storedImage);
+    const storedResults = sessionStorage.getItem('analysisResult');
+    
+    if (!storedImage || !storedResults) {
+      // If no data is available, redirect to the analysis page
+      toast.error('No analysis data found. Please upload a photo first.');
+      navigate('/analysis');
+      return;
     }
     
-    // Simulate an API call to get results
-    const timer = setTimeout(() => {
-      setResults(placeholderResults);
-    }, 1500);
+    setImageData(storedImage);
     
-    return () => clearTimeout(timer);
-  }, []);
+    try {
+      // Parse the stored results
+      const parsedResults = JSON.parse(storedResults) as FaceAnalysisResult;
+      setResults(parsedResults);
+    } catch (error) {
+      console.error('Error parsing analysis results:', error);
+      toast.error('There was an error processing your results. Please try again.');
+      navigate('/analysis');
+    }
+  }, [navigate]);
   
   return (
     <div className="min-h-screen flex flex-col">

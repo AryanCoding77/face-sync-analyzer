@@ -6,9 +6,10 @@ import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter }
 
 interface FaceUploaderProps {
   onImageCaptured: (imageData: string) => void;
+  isAnalyzing?: boolean;
 }
 
-const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured }) => {
+const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzing = false }) => {
   const [captureMode, setCaptureMode] = useState<'upload' | 'camera'>('upload');
   const [previewImage, setPreviewImage] = useState<string | null>(null);
   const [isCapturing, setIsCapturing] = useState(false);
@@ -120,12 +121,27 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured }) => {
                 alt="Preview" 
                 className="w-full h-full object-contain" 
               />
-              <button 
-                onClick={clearImage}
-                className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full text-text-secondary hover:text-destructive transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
+              {!isAnalyzing && (
+                <button 
+                  onClick={clearImage}
+                  className="absolute top-2 right-2 bg-white/80 p-1.5 rounded-full text-text-secondary hover:text-destructive transition-colors"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              )}
+              
+              {isAnalyzing && (
+                <div className="absolute inset-0 flex items-center justify-center bg-black/50">
+                  <div className="text-center text-white">
+                    <div className="relative w-16 h-16 mx-auto mb-4">
+                      <div className="absolute inset-0 rounded-full border-t-2 border-accent-blue animate-spin"></div>
+                      <div className="absolute inset-3 rounded-full border-t-2 border-accent-blue animate-spin" style={{ animationDirection: 'reverse', animationDuration: '1s' }}></div>
+                    </div>
+                    <p className="text-lg font-medium">Analyzing your face...</p>
+                    <p className="text-sm text-white/80 mt-2">This may take a moment</p>
+                  </div>
+                </div>
+              )}
             </div>
           ) : captureMode === 'camera' && isCapturing ? (
             <div className="relative w-full h-full">
@@ -192,10 +208,22 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured }) => {
           </>
         )}
 
-        {previewImage && (
+        {previewImage && !isAnalyzing && (
           <div className="w-full flex justify-center">
-            <Button size="md" isLoading={false}>
+            <Button 
+              onClick={() => onImageCaptured(previewImage)} 
+              size="md"
+              isLoading={false}
+            >
               Continue to Analysis
+            </Button>
+          </div>
+        )}
+        
+        {previewImage && isAnalyzing && (
+          <div className="w-full flex justify-center">
+            <Button size="md" isLoading={true} disabled>
+              Analyzing Image...
             </Button>
           </div>
         )}
