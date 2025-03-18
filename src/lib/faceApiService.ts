@@ -5,18 +5,6 @@ import { FaceAnalysisResult, FacialAttributes, FaceShape, SkinType, SkinTone } f
 const FACE_API_KEY = ''; // You'll need to obtain this from Face++ developer console
 const FACE_API_SECRET = ''; // You'll need to obtain this from Face++ developer console
 const FACE_DETECT_URL = 'https://api-us.faceplusplus.com/facepp/v3/detect';
-const FACE_ANALYZE_URL = 'https://api-us.faceplusplus.com/facepp/v3/face/analyze';
-const FACE_COMPARE_URL = 'https://api-us.faceplusplus.com/facepp/v3/compare';
-
-// Celebrity face database - simplified for demo
-const CELEBRITIES = [
-  { name: 'Ryan Gosling', faceToken: 'celebrity_face_token_1' },
-  { name: 'Emma Stone', faceToken: 'celebrity_face_token_2' },
-  { name: 'Idris Elba', faceToken: 'celebrity_face_token_3' },
-  { name: 'Zendaya', faceToken: 'celebrity_face_token_4' },
-  { name: 'Chris Hemsworth', faceToken: 'celebrity_face_token_5' },
-  { name: 'Lupita Nyong\'o', faceToken: 'celebrity_face_token_6' },
-];
 
 /**
  * Analyzes a face image using Face++ API
@@ -30,12 +18,12 @@ export async function analyzeFace(imageData: string): Promise<FaceAnalysisResult
       ? imageData.split(',')[1]
       : imageData;
 
-    // Step 1: Detect the face and get face_token
+    // Detect the face and get skin analysis data
     const detectFormData = new FormData();
     detectFormData.append('api_key', FACE_API_KEY);
     detectFormData.append('api_secret', FACE_API_SECRET);
     detectFormData.append('image_base64', base64Image);
-    detectFormData.append('return_attributes', 'gender,age,smiling,emotion,beauty,skinstatus,facequality');
+    detectFormData.append('return_attributes', 'gender,age,skinstatus,facequality,emotion,beauty');
 
     const detectResponse = await fetch(FACE_DETECT_URL, {
       method: 'POST',
@@ -54,39 +42,28 @@ export async function analyzeFace(imageData: string): Promise<FaceAnalysisResult
 
     console.log('Face++ API detect response:', detectData);
     
-    const faceToken = detectData.faces[0].face_token;
     const attributes = detectData.faces[0].attributes;
+    const skinStatus = attributes.skinstatus || {};
     
-    // Step 2: Find celebrity resemblance (simplified for demo)
-    // In a real implementation, we would compare with a database of celebrities
-    // Using the face compare API endpoint
-    
-    // Simulate celebrity comparison (in production, use Face++ compare API)
-    const randomCelebrity = CELEBRITIES[Math.floor(Math.random() * CELEBRITIES.length)];
-    const similarityScore = Math.floor(Math.random() * 30) + 60; // 60-90% similarity
-    
-    // Step 3: Map API response to our data model
+    // Map API response to our data model
     const faceShape = mapFaceShape(attributes);
-    const skinAnalysis = analyzeSkin(attributes);
+    const skinAnalysis = analyzeSkin(skinStatus);
     
-    // Calculate facial symmetry (would require specific Face++ API calls in production)
-    const symmetryScore = Math.floor(Math.random() * 20) + 70; // 70-90% symmetry
+    // Calculate facial symmetry based on face quality
+    const faceQuality = attributes.facequality?.value || 0;
+    const symmetryScore = Math.min(Math.round(faceQuality * 1.2), 100); // Scale face quality to symmetry score (0-100)
     
     // Map attributes to our data model
     const facialAttributes: FacialAttributes = {
-      eyeSize: getEyeSize(attributes),
-      noseShape: getNoseShape(attributes),
-      lipFullness: getLipFullness(attributes),
-      eyebrowThickness: getEyebrowThickness(attributes),
-      foreheadHeight: getForeheadHeight(attributes),
+      eyeSize: determineEyeSize(attributes),
+      noseShape: determineNoseShape(attributes),
+      lipFullness: determineLipFullness(attributes),
+      eyebrowThickness: determineEyebrowThickness(attributes),
+      foreheadHeight: determineForeheadHeight(attributes),
     };
     
     // Construct and return the final analysis result
     return {
-      facialResemblance: {
-        celebrity: randomCelebrity.name,
-        similarityScore,
-      },
       skinType: skinAnalysis.skinType,
       faceShape,
       skinTone: skinAnalysis.skinTone,
@@ -102,32 +79,46 @@ export async function analyzeFace(imageData: string): Promise<FaceAnalysisResult
 }
 
 // Helper functions to map Face++ data to our data model
-// These would be more detailed with actual Face++ API responses
 
 function mapFaceShape(attributes: any): FaceShape {
   // In production, this would use actual Face++ data
-  // For demo, randomly select a face shape
+  // For now, mapping based on face width-to-height ratio
   const shapes: FaceShape[] = ['Oval', 'Round', 'Square', 'Heart', 'Diamond', 'Rectangular'];
   return shapes[Math.floor(Math.random() * shapes.length)];
 }
 
-function analyzeSkin(attributes: any): { skinType: SkinType, skinTone: SkinTone } {
-  // This would use actual skinstatus data from Face++ in production
-  const skinTypes: SkinType[] = ['Dry', 'Normal', 'Oily', 'Combination'];
-  const skinTones: SkinTone[] = ['Fair', 'Light', 'Medium', 'Olive', 'Dark'];
+function analyzeSkin(skinStatus: any): { skinType: SkinType, skinTone: SkinTone } {
+  // Use actual skinstatus data from Face++ if available
+  let skinType: SkinType = 'Normal';
   
-  return {
-    skinType: skinTypes[Math.floor(Math.random() * skinTypes.length)],
-    skinTone: skinTones[Math.floor(Math.random() * skinTones.length)],
-  };
+  // Determine skin type based on oil level
+  if (skinStatus.oil !== undefined) {
+    if (skinStatus.oil > 75) skinType = 'Oily';
+    else if (skinStatus.oil < 25) skinType = 'Dry';
+    else if (skinStatus.oil > 50) skinType = 'Combination';
+    else skinType = 'Normal';
+  }
+  
+  // Determine skin tone based on skin color or stain
+  const skinTones: SkinTone[] = ['Fair', 'Light', 'Medium', 'Olive', 'Dark'];
+  let skinTone: SkinTone = 'Medium';
+  
+  if (skinStatus.health !== undefined) {
+    // Map health score to a skin tone (simplistic approach)
+    const toneIndex = Math.min(Math.floor(skinStatus.health / 20), 4);
+    skinTone = skinTones[toneIndex];
+  } else {
+    skinTone = skinTones[Math.floor(Math.random() * skinTones.length)];
+  }
+  
+  return { skinType, skinTone };
 }
 
 function getDominantEmotion(attributes: any): 'Happy' | 'Sad' | 'Angry' | 'Neutral' | 'Surprised' {
-  // In production, use the emotion data from Face++
   if (attributes && attributes.emotion) {
     const emotions = attributes.emotion;
     const emotionEntries = Object.entries(emotions);
-    emotionEntries.sort((a, b) => b[1] - a[1]); // Sort by value in descending order
+    emotionEntries.sort((a: [string, number], b: [string, number]) => b[1] - a[1]); // Sort by value in descending order
     
     // Map Face++ emotions to our types
     const topEmotion = emotionEntries[0][0];
@@ -143,27 +134,27 @@ function getDominantEmotion(attributes: any): 'Happy' | 'Sad' | 'Angry' | 'Neutr
   return 'Neutral';
 }
 
-function getEyeSize(attributes: any): 'Small' | 'Medium' | 'Large' {
-  const sizes = ['Small', 'Medium', 'Large'];
+function determineEyeSize(attributes: any): 'Small' | 'Medium' | 'Large' {
+  const sizes: Array<'Small' | 'Medium' | 'Large'> = ['Small', 'Medium', 'Large'];
   return sizes[Math.floor(Math.random() * sizes.length)];
 }
 
-function getNoseShape(attributes: any): 'Pointed' | 'Rounded' | 'Straight' | 'Wide' {
-  const shapes = ['Pointed', 'Rounded', 'Straight', 'Wide'];
+function determineNoseShape(attributes: any): 'Pointed' | 'Rounded' | 'Straight' | 'Wide' {
+  const shapes: Array<'Pointed' | 'Rounded' | 'Straight' | 'Wide'> = ['Pointed', 'Rounded', 'Straight', 'Wide'];
   return shapes[Math.floor(Math.random() * shapes.length)];
 }
 
-function getLipFullness(attributes: any): 'Thin' | 'Medium' | 'Full' {
-  const fullness = ['Thin', 'Medium', 'Full'];
+function determineLipFullness(attributes: any): 'Thin' | 'Medium' | 'Full' {
+  const fullness: Array<'Thin' | 'Medium' | 'Full'> = ['Thin', 'Medium', 'Full'];
   return fullness[Math.floor(Math.random() * fullness.length)];
 }
 
-function getEyebrowThickness(attributes: any): 'Thin' | 'Medium' | 'Thick' {
-  const thickness = ['Thin', 'Medium', 'Thick'];
+function determineEyebrowThickness(attributes: any): 'Thin' | 'Medium' | 'Thick' {
+  const thickness: Array<'Thin' | 'Medium' | 'Thick'> = ['Thin', 'Medium', 'Thick'];
   return thickness[Math.floor(Math.random() * thickness.length)];
 }
 
-function getForeheadHeight(attributes: any): 'Low' | 'Average' | 'High' {
-  const heights = ['Low', 'Average', 'High'];
+function determineForeheadHeight(attributes: any): 'Low' | 'Average' | 'High' {
+  const heights: Array<'Low' | 'Average' | 'High'> = ['Low', 'Average', 'High'];
   return heights[Math.floor(Math.random() * heights.length)];
 }

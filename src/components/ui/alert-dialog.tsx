@@ -17,7 +17,7 @@ const AlertDialogOverlay = React.forwardRef<
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Overlay
     className={cn(
-      "fixed inset-0 z-50 bg-black/80  data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
+      "fixed inset-0 z-50 bg-black/80 data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0",
       className
     )}
     {...props}
@@ -97,34 +97,34 @@ const AlertDialogDescription = React.forwardRef<
 AlertDialogDescription.displayName =
   AlertDialogPrimitive.Description.displayName
 
-// Use Button directly for the action buttons
 const AlertDialogAction = React.forwardRef<
   HTMLButtonElement,
-  React.ComponentPropsWithoutRef<typeof Button>
+  React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, ...props }, ref) => (
-  <Button
-    ref={ref}
-    className={cn(className)}
-    {...props}
-  />
+  <AlertDialogPrimitive.Action asChild>
+    <Button
+      ref={ref}
+      className={className}
+      {...props}
+    />
+  </AlertDialogPrimitive.Action>
 ))
-AlertDialogAction.displayName = "AlertDialogAction"
+AlertDialogAction.displayName = AlertDialogPrimitive.Action.displayName
 
 const AlertDialogCancel = React.forwardRef<
   HTMLButtonElement,
-  React.ComponentPropsWithoutRef<typeof Button>
+  React.ButtonHTMLAttributes<HTMLButtonElement>
 >(({ className, ...props }, ref) => (
-  <Button
-    variant="outline"
-    ref={ref}
-    className={cn(
-      "mt-2 sm:mt-0",
-      className
-    )}
-    {...props}
-  />
+  <AlertDialogPrimitive.Cancel asChild>
+    <Button
+      variant="outline"
+      ref={ref}
+      className={className}
+      {...props}
+    />
+  </AlertDialogPrimitive.Cancel>
 ))
-AlertDialogCancel.displayName = "AlertDialogCancel"
+AlertDialogCancel.displayName = AlertDialogPrimitive.Cancel.displayName
 
 export {
   AlertDialog,

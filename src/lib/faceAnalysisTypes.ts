@@ -7,18 +7,12 @@ export interface FacialAttributes {
   foreheadHeight: 'Low' | 'Average' | 'High';
 }
 
-export interface FacialResemblance {
-  celebrity: string;
-  similarityScore: number;
-}
-
 export type SkinType = 'Dry' | 'Normal' | 'Oily' | 'Combination';
 export type FaceShape = 'Oval' | 'Round' | 'Square' | 'Heart' | 'Diamond' | 'Rectangular';
 export type SkinTone = 'Fair' | 'Light' | 'Medium' | 'Olive' | 'Dark';
 export type DominantEmotion = 'Happy' | 'Sad' | 'Angry' | 'Neutral' | 'Surprised';
 
 export interface FaceAnalysisResult {
-  facialResemblance: FacialResemblance;
   skinType: SkinType;
   faceShape: FaceShape;
   skinTone: SkinTone;

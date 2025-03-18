@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardHeader, CardTitle, CardContent, CardFooter } from '../UI/Card';
 import Button from '../UI/Button';
 import { Link } from 'react-router-dom';
-import { ArrowRight, Heart, Shield, BarChart, Droplets, Fingerprint } from 'lucide-react';
+import { ArrowRight, Shield, BarChart, Droplets, Fingerprint } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import type { FaceAnalysisResult } from '../../lib/faceAnalysisTypes';
 import { ChartContainer, ChartLegend, ChartLegendContent } from '../ui/chart';
@@ -116,30 +116,6 @@ const ResultsDisplay: React.FC<ResultsDisplayProps> = ({
         
         {/* Right Column - Results */}
         <div className="md:col-span-2 space-y-6">
-          {/* Facial Resemblance */}
-          <Card variant="elevated" className="overflow-hidden">
-            <CardHeader className="bg-accent-blue/5 border-b border-accent-blue/10">
-              <div className="flex items-center">
-                <Heart className="w-5 h-5 text-accent-blue mr-2" />
-                <CardTitle className="text-lg">Facial Resemblance</CardTitle>
-              </div>
-            </CardHeader>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-3xl font-semibold mb-1">{results.facialResemblance.celebrity}</p>
-                  <p className="text-text-secondary">Your face most resembles this celebrity</p>
-                </div>
-                <div className="text-right">
-                  <span className="text-2xl font-medium text-accent-blue">
-                    {results.facialResemblance.similarityScore}%
-                  </span>
-                  <p className="text-text-secondary text-sm">Similarity Score</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
           {/* Facial Symmetry */}
           <Card variant="elevated" className="overflow-hidden">
             <CardHeader className="bg-accent-blue/5 border-b border-accent-blue/10">
