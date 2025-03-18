@@ -1,8 +1,7 @@
-
 import React, { useState, useRef } from 'react';
 import { Upload, Camera, Image, X } from 'lucide-react';
-import Button from '../UI/Button';
-import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../UI/Card';
+import { Button } from '../ui/button';
+import { Card, CardHeader, CardTitle, CardDescription, CardContent, CardFooter } from '../ui/card';
 
 interface FaceUploaderProps {
   onImageCaptured: (imageData: string) => void;
@@ -17,7 +16,6 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzin
   const videoRef = useRef<HTMLVideoElement>(null);
   const streamRef = useRef<MediaStream | null>(null);
 
-  // Handle file upload
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
@@ -33,7 +31,6 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzin
     reader.readAsDataURL(file);
   };
 
-  // Start camera
   const startCamera = async () => {
     try {
       setIsCapturing(true);
@@ -49,7 +46,6 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzin
     }
   };
 
-  // Stop camera
   const stopCamera = () => {
     if (streamRef.current) {
       streamRef.current.getTracks().forEach(track => track.stop());
@@ -58,13 +54,11 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzin
     setIsCapturing(false);
   };
 
-  // Switch to camera mode
   const handleCameraMode = () => {
     setCaptureMode('camera');
     startCamera();
   };
 
-  // Capture from camera
   const captureImage = () => {
     if (!videoRef.current) return;
     
@@ -82,7 +76,6 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzin
     }
   };
 
-  // Clear selected image
   const clearImage = () => {
     setPreviewImage(null);
     if (fileInputRef.current) {
@@ -90,13 +83,11 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzin
     }
   };
 
-  // Cancel camera capture
   const cancelCapture = () => {
     stopCamera();
     setCaptureMode('upload');
   };
 
-  // Trigger file input click
   const triggerFileInput = () => {
     if (fileInputRef.current) {
       fileInputRef.current.click();
@@ -104,7 +95,7 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzin
   };
 
   return (
-    <Card variant="elevated" className="w-full max-w-lg mx-auto overflow-hidden animate-scale-in">
+    <Card className="w-full max-w-lg mx-auto overflow-hidden animate-scale-in">
       <CardHeader>
         <CardTitle>Upload Your Photo</CardTitle>
         <CardDescription>
@@ -186,12 +177,12 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzin
       <CardFooter className="flex flex-wrap justify-center sm:justify-between gap-3">
         {!previewImage && captureMode === 'upload' && (
           <>
-            <Button onClick={triggerFileInput} size="md">
-              <Upload className="w-4 h-4 mr-2" />
+            <Button onClick={triggerFileInput}>
+              <Upload className="mr-2 h-4 w-4" />
               Browse Files
             </Button>
-            <Button onClick={handleCameraMode} variant="secondary" size="md">
-              <Camera className="w-4 h-4 mr-2" />
+            <Button variant="secondary" onClick={handleCameraMode}>
+              <Camera className="mr-2 h-4 w-4" />
               Use Camera
             </Button>
           </>
@@ -199,10 +190,10 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzin
 
         {!previewImage && captureMode === 'camera' && isCapturing && (
           <>
-            <Button onClick={captureImage} size="md">
+            <Button onClick={captureImage}>
               Capture Photo
             </Button>
-            <Button onClick={cancelCapture} variant="secondary" size="md">
+            <Button variant="secondary" onClick={cancelCapture}>
               Cancel
             </Button>
           </>
@@ -211,9 +202,7 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzin
         {previewImage && !isAnalyzing && (
           <div className="w-full flex justify-center">
             <Button 
-              onClick={() => onImageCaptured(previewImage)} 
-              size="md"
-              isLoading={false}
+              onClick={() => onImageCaptured(previewImage)}
             >
               Continue to Analysis
             </Button>
@@ -222,7 +211,8 @@ const FaceUploader: React.FC<FaceUploaderProps> = ({ onImageCaptured, isAnalyzin
         
         {previewImage && isAnalyzing && (
           <div className="w-full flex justify-center">
-            <Button size="md" isLoading={true} disabled>
+            <Button disabled>
+              <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent"></div>
               Analyzing Image...
             </Button>
           </div>

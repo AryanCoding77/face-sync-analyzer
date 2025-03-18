@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import Header from '../components/Layout/Header';
 import Footer from '../components/Layout/Footer';
@@ -85,7 +84,7 @@ const Analysis = () => {
                 <li>Neutral expression works best for accurate analysis</li>
               </ul>
               <p className="mt-4 text-xs text-gray-500">
-                Note: Until you add your Face++ API keys, the app will use mock data for demonstration purposes.
+                Note: The app is now using your Face++ API keys for real facial analysis.
               </p>
             </div>
           </div>
