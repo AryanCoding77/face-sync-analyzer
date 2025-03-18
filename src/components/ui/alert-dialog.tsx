@@ -99,11 +99,12 @@ AlertDialogDescription.displayName =
 
 const AlertDialogAction = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    asChild?: boolean;
+  }
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Action asChild>
     <Button
-      ref={ref}
       className={className}
       {...props}
     />
@@ -113,12 +114,13 @@ AlertDialogAction.displayName = AlertDialogPrimitive.Action.displayName
 
 const AlertDialogCancel = React.forwardRef<
   HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement>
+  React.ButtonHTMLAttributes<HTMLButtonElement> & {
+    asChild?: boolean;
+  }
 >(({ className, ...props }, ref) => (
   <AlertDialogPrimitive.Cancel asChild>
     <Button
       variant="outline"
-      ref={ref}
       className={className}
       {...props}
     />

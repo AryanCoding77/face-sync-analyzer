@@ -19,11 +19,14 @@ const Analysis = () => {
     setIsAnalyzing(true);
     
     try {
+      console.log("Image captured, starting analysis...");
+      
       // Store the image data in session storage 
       sessionStorage.setItem('analysisImage', capturedImage);
       
       // Call Face++ API to analyze the face
       const analysisResult = await analyzeFace(capturedImage);
+      console.log("Analysis result:", analysisResult);
       
       // Store the analysis result
       sessionStorage.setItem('analysisResult', JSON.stringify(analysisResult));
@@ -32,8 +35,18 @@ const Analysis = () => {
       navigate('/results');
     } catch (error) {
       console.error('Error during face analysis:', error);
-      toast.error('Face analysis failed. Please try again with a clearer photo.');
       setIsAnalyzing(false);
+      
+      // Show more specific error message if available
+      if (error instanceof Error) {
+        if (error.message.includes('No faces detected')) {
+          toast.error('No faces detected in the image. Please try with a clearer photo.');
+        } else {
+          toast.error(`Analysis failed: ${error.message}`);
+        }
+      } else {
+        toast.error('Face analysis failed. Please try again with a clearer photo.');
+      }
     }
   };
   
@@ -71,6 +84,9 @@ const Analysis = () => {
                 <li>Remove glasses or accessories that cover your face</li>
                 <li>Neutral expression works best for accurate analysis</li>
               </ul>
+              <p className="mt-4 text-xs text-gray-500">
+                Note: Until you add your Face++ API keys, the app will use mock data for demonstration purposes.
+              </p>
             </div>
           </div>
         </div>
